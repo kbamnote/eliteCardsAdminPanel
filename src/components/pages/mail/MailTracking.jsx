@@ -19,7 +19,7 @@ const MailTracking = () => {
       setError("");
       const response = await getMailTrackingData();
       // Extract mails from the response (response.data.mails)
-      const data = response.data?.data || [];
+      const data = response.data?.mails || [];
       setMails(data);
       setFilteredMails(data);
     } catch (err) {
@@ -43,10 +43,10 @@ const MailTracking = () => {
       result = result.filter(mail => 
         (mail.subject && mail.subject.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (mail.recipients && mail.recipients.some(recipient => recipient.toLowerCase().includes(searchTerm.toLowerCase()))) ||
-        (mail.clientIds && mail.clientIds.some(client => 
-          (client.name && client.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase()))
-        ))
+        (mail.clientIds && mail.clientIds.some(client => {
+          // Since we only populate email, we can only search by email
+          return client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase());
+        }))
       );
     }
     
@@ -262,7 +262,7 @@ const MailTracking = () => {
                       </div>
                       {mail.clientIds && mail.clientIds.length > 0 && (
                         <div className="text-xs text-gray-500 truncate">
-                          {mail.clientIds[0].name || mail.clientIds[0].email}
+                          {mail.clientIds[0].email || 'Unknown Client'}
                           {mail.clientIds.length > 1 && ` +${mail.clientIds.length - 1} more`}
                         </div>
                       )}
@@ -383,11 +383,11 @@ const MailTracking = () => {
                         <div key={client._id} className="flex items-center p-3 bg-[#0f0f1a] rounded-lg border border-gray-700">
                           <div className="flex-shrink-0 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-medium text-sm">
-                              {client.name ? client.name.charAt(0).toUpperCase() : '#'}
+                              {client.email ? client.email.charAt(0).toUpperCase() : '#'}
                             </span>
                           </div>
                           <div className="ml-3 flex-1">
-                            <p className="text-white font-medium">{client.name || 'N/A'}</p>
+                            <p className="text-white font-medium">{client.email || 'N/A'}</p>
                             <p className="text-gray-400 text-sm">{client.email || 'N/A'}</p>
                           </div>
                           <div className="text-xs text-gray-500">

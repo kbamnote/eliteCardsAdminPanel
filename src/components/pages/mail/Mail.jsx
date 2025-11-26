@@ -90,7 +90,8 @@ const MailPage = () => {
   };
 
   // Toggle client selection
-  const toggleClientSelection = (clientId) => {
+  const toggleClientSelection = (client) => {
+    const clientId = client.userId?._id || client._id;
     if (selectedClients.includes(clientId)) {
       setSelectedClients(selectedClients.filter(id => id !== clientId));
     } else {
@@ -103,7 +104,7 @@ const MailPage = () => {
     if (selectAll) {
       setSelectedClients([]);
     } else {
-      setSelectedClients(filteredClients.map(client => client._id));
+      setSelectedClients(filteredClients.map(client => client.userId?._id || client._id));
     }
     setSelectAll(!selectAll);
   };
@@ -419,10 +420,10 @@ const MailPage = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <button
-                            onClick={() => toggleClientSelection(client._id)}
+                            onClick={() => toggleClientSelection(client)}
                             className="text-green-500 hover:text-green-400"
                           >
-                            {selectedClients.includes(client._id) ? (
+                            {selectedClients.includes(client.userId?._id || client._id) ? (
                               <CheckSquare className="w-5 h-5" />
                             ) : (
                               <Square className="w-5 h-5" />

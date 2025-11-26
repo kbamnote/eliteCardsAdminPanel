@@ -33,7 +33,12 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
       
       // If a specific client ID is provided, pre-select that client
       if (clientId) {
-        setSelectedClients([clientId]);
+        // Find the client with the matching ID and get their user ID
+        const client = allClientsData.find(c => 
+          c._id === clientId || c.userId?._id === clientId || c.id === clientId
+        );
+        const userId = client ? (client.userId?._id || client._id || client.id) : clientId;
+        setSelectedClients([userId]);
       }
     } catch (error) {
       console.error("Error fetching clients:", error);
@@ -74,7 +79,8 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
   };
 
   // Toggle client selection
-  const toggleClientSelection = (clientId) => {
+  const toggleClientSelection = (client) => {
+    const clientId = client.userId?._id || client._id || client.id;
     if (selectedClients.includes(clientId)) {
       setSelectedClients(selectedClients.filter(id => id !== clientId));
     } else {
@@ -87,7 +93,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
     if (selectAll) {
       setSelectedClients([]);
     } else {
-      setSelectedClients(filteredClients.map(client => client._id || client.userId || client.id));
+      setSelectedClients(filteredClients.map(client => client.userId?._id || client._id || client.id));
     }
     setSelectAll(!selectAll);
   };
@@ -132,9 +138,9 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
         // Single mail
         formData.append('clientId', selectedClients[0]);
       } else {
-        // Group mail
-        selectedClients.forEach((id, index) => {
-          formData.append(`clientIds[${index}]`, id);
+        // Group mail - append each client ID with the correct array notation
+        selectedClients.forEach((id) => {
+          formData.append('clientIds[]', id);
         });
       }
       
@@ -390,7 +396,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
                     ) : (
                       <ul className="divide-y divide-gray-700">
                         {filteredClients.map((client) => {
-                          const clientId = client._id || client.userId || client.id;
+                          const clientId = client.userId?._id || client._id || client.id;
                           return (
                             <li 
                               key={clientId} 
@@ -399,7 +405,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                   <button
-                                    onClick={() => toggleClientSelection(clientId)}
+                                    onClick={() => toggleClientSelection(client)}
                                     className="text-blue-400 hover:text-blue-300"
                                   >
                                     {selectedClients.includes(clientId) ? (

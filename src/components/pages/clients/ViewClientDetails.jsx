@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Briefcase, Image, Package, MessageCircle, Phone, Mail, MapPin, Calendar, Link, Facebook, Instagram, Twitter, Linkedin, Youtube, Smartphone, Edit } from 'lucide-react';
+import { ArrowLeft, User, Briefcase, Image, Package, MessageCircle, Phone, Mail, MapPin, Calendar, Link, Facebook, Instagram, Twitter, Linkedin, Youtube, Smartphone, Edit, Plus } from 'lucide-react';
 import EditModal from '../../common/EditModal';
 import { 
   getClientProfile, 
@@ -12,7 +12,12 @@ import {
   updateAdminService,
   updateAdminGalleryItem,
   updateAdminProduct,
-  updateAdminTestimonial
+  updateAdminTestimonial,
+  allClients,
+  createAdminService,
+  createAdminGalleryItem,
+  createAdminProduct,
+  createAdminTestimonial
 } from '../../../utils/Api';
 
 const ViewClientDetails = () => {
@@ -39,56 +44,58 @@ const ViewClientDetails = () => {
         setError('');
         setSuccessMessage('');
         
-        // Fetch client profile
-        const profileResponse = await getClientProfile(id);
-        if (profileResponse.data.success) {
-          setClientData(profileResponse.data.data);
+        // Always start by fetching all profiles to get the correct mapping
+        const allProfilesResponse = await allClients();
+        if (allProfilesResponse.data.success) {
+          const profiles = allProfilesResponse.data.data;
+          // Find the matching profile by Profile ID, User ID, or nested User ID
+          const matchingProfile = profiles.find(profile => 
+            profile._id === id || profile.userId === id || profile.userId?._id === id
+          );
           
-          // Use the user ID from the profile data to fetch associated data
-          // The profile data should have a userId field with the actual user ID
-          const userId = profileResponse.data.data.userId?._id || id;
-          
-          // Fetch services
-          try {
-            const servicesResponse = await getClientServices(userId);
-            if (servicesResponse.data.success) {
-              setServices(servicesResponse.data.data);
+          if (matchingProfile) {
+            setClientData(matchingProfile);
+            
+            // Use the user ID from the matching profile for associated data
+            const userId = matchingProfile.userId?._id || matchingProfile.userId || id;
+            
+            // Fetch associated data in parallel
+            try {
+              // Fetch all associated data in parallel
+              const [servicesResponse, galleryResponse, productsResponse, testimonialsResponse] = await Promise.allSettled([
+                getClientServices(userId),
+                getClientGallery(userId),
+                getClientProducts(userId),
+                getClientTestimonials(userId)
+              ]);
+              
+              // Handle services
+              if (servicesResponse.status === 'fulfilled' && servicesResponse.value.data.success) {
+                setServices(servicesResponse.value.data.data);
+              }
+              
+              // Handle gallery
+              if (galleryResponse.status === 'fulfilled' && galleryResponse.value.data.success) {
+                setGallery(galleryResponse.value.data.data);
+              }
+              
+              // Handle products
+              if (productsResponse.status === 'fulfilled' && productsResponse.value.data.success) {
+                setProducts(productsResponse.value.data.data);
+              }
+              
+              // Handle testimonials
+              if (testimonialsResponse.status === 'fulfilled' && testimonialsResponse.value.data.success) {
+                setTestimonials(testimonialsResponse.value.data.data);
+              }
+            } catch (err) {
+              console.error('Error fetching associated data:', err);
             }
-          } catch (err) {
-            console.log('No services found for this client');
-          }
-          
-          // Fetch gallery
-          try {
-            const galleryResponse = await getClientGallery(userId);
-            if (galleryResponse.data.success) {
-              setGallery(galleryResponse.data.data);
-            }
-          } catch (err) {
-            console.log('No gallery found for this client');
-          }
-          
-          // Fetch products
-          try {
-            const productsResponse = await getClientProducts(userId);
-            if (productsResponse.data.success) {
-              setProducts(productsResponse.data.data);
-            }
-          } catch (err) {
-            console.log('No products found for this client');
-          }
-          
-          // Fetch testimonials
-          try {
-            const testimonialsResponse = await getClientTestimonials(userId);
-            if (testimonialsResponse.data.success) {
-              setTestimonials(testimonialsResponse.data.data);
-            }
-          } catch (err) {
-            console.log('No testimonials found for this client');
+          } else {
+            setError('Client profile not found');
           }
         } else {
-          setError('Failed to fetch client profile');
+          setError('Failed to fetch client profiles');
         }
         setLoading(false);
       } catch (err) {
@@ -119,7 +126,9 @@ const ViewClientDetails = () => {
 
   const handleSaveProfile = async (updatedData) => {
     try {
-      const response = await updateClientProfile(id, updatedData);
+      // Use the user ID from the client data, not the profile ID from the route
+      const userId = clientData?.userId?._id || clientData?.userId || id;
+      const response = await updateClientProfile(userId, updatedData);
       if (response.data.success) {
         setClientData(response.data.data);
         setSuccessMessage('Profile updated successfully');
@@ -202,6 +211,153 @@ const ViewClientDetails = () => {
 
   const renderEditModalContent = () => {
     switch (editingSection) {
+      case 'createProfile':
+        return (
+          <div className="space-y-4">
+            <h4 className="text-lg font-medium text-white">Create Profile</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
+                <input
+                  type="text"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Profession</label>
+                <input
+                  type="text"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-profession"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-400 mb-1">About</label>
+                <textarea
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  rows="3"
+                  id="create-about"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Phone 1</label>
+                <input
+                  type="text"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-phone1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Phone 2</label>
+                <input
+                  type="text"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-phone2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Location</label>
+                <input
+                  type="text"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-location"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Date of Birth</label>
+                <input
+                  type="date"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-dob"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Gmail</label>
+                <input
+                  type="email"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-gmail"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Website Link</label>
+                <input
+                  type="url"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-websiteLink"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">App Link</label>
+                <input
+                  type="url"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-appLink"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Template ID</label>
+                <input
+                  type="text"
+                  defaultValue="template1"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-templateId"
+                />
+              </div>
+              {/* Social Media Fields */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Facebook</label>
+                <input
+                  type="url"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-facebook"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Instagram</label>
+                <input
+                  type="url"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-instagram"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Twitter</label>
+                <input
+                  type="url"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-twitter"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">LinkedIn</label>
+                <input
+                  type="url"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-linkedin"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">YouTube</label>
+                <input
+                  type="url"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-youtube"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">WhatsApp</label>
+                <input
+                  type="text"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="create-whatsapp"
+                />
+              </div>
+            </div>
+          </div>
+        );
+      
       case 'profile':
         return (
           <div className="space-y-4">
@@ -313,7 +469,9 @@ const ViewClientDetails = () => {
       case 'service':
         return (
           <div className="space-y-4">
-            <h4 className="text-lg font-medium text-white">Edit Service</h4>
+            <h4 className="text-lg font-medium text-white">
+              {editingItem ? 'Edit Service' : 'Add Service'}
+            </h4>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Title</label>
@@ -340,7 +498,9 @@ const ViewClientDetails = () => {
       case 'gallery':
         return (
           <div className="space-y-4">
-            <h4 className="text-lg font-medium text-white">Edit Gallery Item</h4>
+            <h4 className="text-lg font-medium text-white">
+              {editingItem ? 'Edit Gallery Item' : 'Add Gallery Item'}
+            </h4>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Caption</label>
@@ -351,6 +511,15 @@ const ViewClientDetails = () => {
                   id="edit-gallery-caption"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="edit-gallery-image"
+                />
+              </div>
             </div>
           </div>
         );
@@ -358,7 +527,9 @@ const ViewClientDetails = () => {
       case 'product':
         return (
           <div className="space-y-4">
-            <h4 className="text-lg font-medium text-white">Edit Product</h4>
+            <h4 className="text-lg font-medium text-white">
+              {editingItem ? 'Edit Product' : 'Add Product'}
+            </h4>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
@@ -388,6 +559,15 @@ const ViewClientDetails = () => {
                   id="edit-product-price"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  id="edit-product-image"
+                />
+              </div>
             </div>
           </div>
         );
@@ -395,7 +575,9 @@ const ViewClientDetails = () => {
       case 'testimonial':
         return (
           <div className="space-y-4">
-            <h4 className="text-lg font-medium text-white">Edit Testimonial</h4>
+            <h4 className="text-lg font-medium text-white">
+              {editingItem ? 'Edit Testimonial' : 'Add Testimonial'}
+            </h4>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Client Name</label>
@@ -442,6 +624,33 @@ const ViewClientDetails = () => {
     
     // Collect form data based on the section being edited
     switch (editingSection) {
+      case 'createProfile':
+        // Collect all profile data
+        data.name = document.getElementById('create-name').value;
+        data.profession = document.getElementById('create-profession').value;
+        data.about = document.getElementById('create-about').value;
+        data.phone1 = document.getElementById('create-phone1').value;
+        data.phone2 = document.getElementById('create-phone2').value;
+        data.location = document.getElementById('create-location').value;
+        data.dob = document.getElementById('create-dob').value;
+        data.gmail = document.getElementById('create-gmail').value;
+        data.websiteLink = document.getElementById('create-websiteLink').value;
+        data.appLink = document.getElementById('create-appLink').value;
+        data.templateId = document.getElementById('create-templateId').value;
+        
+        // Collect social media data
+        data.socialMedia = {
+          facebook: document.getElementById('create-facebook').value,
+          instagram: document.getElementById('create-instagram').value,
+          twitter: document.getElementById('create-twitter').value,
+          linkedin: document.getElementById('create-linkedin').value,
+          youtube: document.getElementById('create-youtube').value,
+          whatsapp: document.getElementById('create-whatsapp').value
+        };
+        
+        await handleCreateProfile(data);
+        break;
+      
       case 'profile':
         data.name = document.getElementById('edit-name').value;
         data.profession = document.getElementById('edit-profession').value;
@@ -460,26 +669,50 @@ const ViewClientDetails = () => {
       case 'service':
         data.title = document.getElementById('edit-service-title').value;
         data.description = document.getElementById('edit-service-description').value;
-        await handleSaveService(data);
+        if (editingItem) {
+          await handleSaveService(data);
+        } else {
+          await handleCreateService(data);
+        }
         break;
       
       case 'gallery':
         data.caption = document.getElementById('edit-gallery-caption').value;
-        await handleSaveGalleryItem(data);
+        const galleryImage = document.getElementById('edit-gallery-image').files[0];
+        if (galleryImage) {
+          data.image = galleryImage;
+        }
+        if (editingItem) {
+          await handleSaveGalleryItem(data);
+        } else {
+          await handleCreateGalleryItem(data);
+        }
         break;
       
       case 'product':
         data.name = document.getElementById('edit-product-name').value;
         data.description = document.getElementById('edit-product-description').value;
         data.price = document.getElementById('edit-product-price').value;
-        await handleSaveProduct(data);
+        const productImage = document.getElementById('edit-product-image').files[0];
+        if (productImage) {
+          data.image = productImage;
+        }
+        if (editingItem) {
+          await handleSaveProduct(data);
+        } else {
+          await handleCreateProduct(data);
+        }
         break;
       
       case 'testimonial':
         data.testimonialName = document.getElementById('edit-testimonial-name').value;
         data.feedback = document.getElementById('edit-testimonial-feedback').value;
         data.rating = document.getElementById('edit-testimonial-rating').value;
-        await handleSaveTestimonial(data);
+        if (editingItem) {
+          await handleSaveTestimonial(data);
+        } else {
+          await handleCreateTestimonial(data);
+        }
         break;
       
       default:
@@ -534,7 +767,155 @@ const ViewClientDetails = () => {
   }
 
   // Use the user ID from the profile data
-  const userId = clientData.userId?._id || clientData.userId || id;
+  const userId = clientData?.userId?._id || clientData?.userId || id;
+
+  // Check if the client has a profile (has name or other profile fields)
+  const hasProfile = clientData && (clientData.name || clientData.profession || clientData.about);
+  
+  // Helper function to prepare data for creating a new profile
+  const handleCreateProfile = async (profileData) => {
+    try {
+      const userId = clientData?.userId?._id || clientData?.userId || id;
+      // Use updateClientProfile which now handles creating a profile if it doesn't exist
+      const response = await updateClientProfile(userId, profileData);
+      if (response.data.success) {
+        setClientData(response.data.data);
+        setSuccessMessage('Profile created successfully');
+        closeEditModal();
+        // Refresh the data by calling the fetchData function
+        // Since fetchData is not accessible here, we'll fetch the updated profile directly
+        try {
+          const updatedProfileResponse = await getClientProfile(id);
+          if (updatedProfileResponse.data.success) {
+            setClientData(updatedProfileResponse.data.data);
+          }
+        } catch (err) {
+          console.error('Error fetching updated profile:', err);
+        }
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (error) {
+      setError('Error creating profile: ' + (error.response?.data?.message || error.message));
+      throw error;
+    }
+  };
+
+  // Helper function to create a new service
+  const handleCreateService = async (serviceData) => {
+    try {
+      const userId = clientData?.userId?._id || clientData?.userId || id;
+      const response = await createAdminService({ ...serviceData, userId });
+      if (response.data.success) {
+        setSuccessMessage('Service created successfully');
+        closeEditModal();
+        // Refresh services
+        try {
+          const servicesResponse = await getClientServices(userId);
+          if (servicesResponse.data.success) {
+            setServices(servicesResponse.data.data);
+          }
+        } catch (err) {
+          console.error('Error fetching updated services:', err);
+        }
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (error) {
+      setError('Error creating service: ' + (error.response?.data?.message || error.message));
+      throw error;
+    }
+  };
+
+  // Helper function to create a new gallery item
+  const handleCreateGalleryItem = async (galleryData) => {
+    try {
+      const userId = clientData?.userId?._id || clientData?.userId || id;
+      const formData = new FormData();
+      formData.append('userId', userId);
+      if (galleryData.caption) formData.append('caption', galleryData.caption);
+      if (galleryData.image) formData.append('image', galleryData.image);
+      
+      const response = await createAdminGalleryItem(formData);
+      if (response.data.success) {
+        setSuccessMessage('Gallery item created successfully');
+        closeEditModal();
+        // Refresh gallery
+        try {
+          const galleryResponse = await getClientGallery(userId);
+          if (galleryResponse.data.success) {
+            setGallery(galleryResponse.data.data);
+          }
+        } catch (err) {
+          console.error('Error fetching updated gallery:', err);
+        }
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (error) {
+      setError('Error creating gallery item: ' + (error.response?.data?.message || error.message));
+      throw error;
+    }
+  };
+
+  // Helper function to create a new product
+  const handleCreateProduct = async (productData) => {
+    try {
+      const userId = clientData?.userId?._id || clientData?.userId || id;
+      const formData = new FormData();
+      formData.append('userId', userId);
+      if (productData.name) formData.append('productName', productData.name);
+      if (productData.description) formData.append('details', productData.description);
+      if (productData.price) formData.append('price', productData.price);
+      if (productData.image) formData.append('productPhoto', productData.image);
+      
+      const response = await createAdminProduct(formData);
+      if (response.data.success) {
+        setSuccessMessage('Product created successfully');
+        closeEditModal();
+        // Refresh products
+        try {
+          const productsResponse = await getClientProducts(userId);
+          if (productsResponse.data.success) {
+            setProducts(productsResponse.data.data);
+          }
+        } catch (err) {
+          console.error('Error fetching updated products:', err);
+        }
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (error) {
+      setError('Error creating product: ' + (error.response?.data?.message || error.message));
+      throw error;
+    }
+  };
+
+  // Helper function to create a new testimonial
+  const handleCreateTestimonial = async (testimonialData) => {
+    try {
+      const userId = clientData?.userId?._id || clientData?.userId || id;
+      const response = await createAdminTestimonial({ ...testimonialData, userId });
+      if (response.data.success) {
+        setSuccessMessage('Testimonial created successfully');
+        closeEditModal();
+        // Refresh testimonials
+        try {
+          const testimonialsResponse = await getClientTestimonials(userId);
+          if (testimonialsResponse.data.success) {
+            setTestimonials(testimonialsResponse.data.data);
+          }
+        } catch (err) {
+          console.error('Error fetching updated testimonials:', err);
+        }
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (error) {
+      setError('Error creating testimonial: ' + (error.response?.data?.message || error.message));
+      throw error;
+    }
+  };
 
   // Helper function to render social media links
   const renderSocialMediaLinks = () => {
@@ -602,11 +983,11 @@ const ViewClientDetails = () => {
             Profile Information
           </h3>
           <button
-            onClick={() => openEditModal('profile')}
+            onClick={() => openEditModal(hasProfile ? 'profile' : 'createProfile')}
             className="flex items-center text-green-400 hover:text-green-300 text-sm"
           >
             <Edit className="h-4 w-4 mr-1" />
-            Edit
+            {hasProfile ? 'Edit' : 'Add Details'}
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -724,14 +1105,21 @@ const ViewClientDetails = () => {
       </div>
 
       {/* Services Section */}
-      {services.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-white flex items-center">
-              <Briefcase className="h-5 w-5 mr-2 text-green-500" />
-              Services ({services.length})
-            </h3>
-          </div>
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold text-white flex items-center">
+            <Briefcase className="h-5 w-5 mr-2 text-green-500" />
+            Services ({services.length})
+          </h3>
+          <button
+            onClick={() => openEditModal('service', null)}
+            className="flex items-center text-green-400 hover:text-green-300 text-sm"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Service
+          </button>
+        </div>
+        {services.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map((service) => (
               <div key={service._id} className="bg-[#0f0f1a] p-4 rounded-lg relative">
@@ -750,18 +1138,29 @@ const ViewClientDetails = () => {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="bg-[#0f0f1a] p-4 rounded-lg text-gray-400">
+            No services added yet
+          </div>
+        )}
+      </div>
 
       {/* Gallery Section */}
-      {gallery.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-white flex items-center">
-              <Image className="h-5 w-5 mr-2 text-green-500" />
-              Gallery ({gallery.length})
-            </h3>
-          </div>
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold text-white flex items-center">
+            <Image className="h-5 w-5 mr-2 text-green-500" />
+            Gallery ({gallery.length})
+          </h3>
+          <button
+            onClick={() => openEditModal('gallery', null)}
+            className="flex items-center text-green-400 hover:text-green-300 text-sm"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Gallery Item
+          </button>
+        </div>
+        {gallery.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {gallery.map((item) => (
               <div key={item._id} className="bg-[#0f0f1a] rounded-lg overflow-hidden relative">
@@ -777,18 +1176,29 @@ const ViewClientDetails = () => {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="bg-[#0f0f1a] p-4 rounded-lg text-gray-400">
+            No gallery items added yet
+          </div>
+        )}
+      </div>
 
       {/* Products Section */}
-      {products.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-white flex items-center">
-              <Package className="h-5 w-5 mr-2 text-green-500" />
-              Products ({products.length})
-            </h3>
-          </div>
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold text-white flex items-center">
+            <Package className="h-5 w-5 mr-2 text-green-500" />
+            Products ({products.length})
+          </h3>
+          <button
+            onClick={() => openEditModal('product', null)}
+            className="flex items-center text-green-400 hover:text-green-300 text-sm"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Product
+          </button>
+        </div>
+        {products.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map((product) => (
               <div key={product._id} className="bg-[#0f0f1a] p-4 rounded-lg relative">
@@ -810,18 +1220,29 @@ const ViewClientDetails = () => {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="bg-[#0f0f1a] p-4 rounded-lg text-gray-400">
+            No products added yet
+          </div>
+        )}
+      </div>
 
       {/* Testimonials Section */}
-      {testimonials.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-white flex items-center">
-              <MessageCircle className="h-5 w-5 mr-2 text-green-500" />
-              Testimonials ({testimonials.length})
-            </h3>
-          </div>
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold text-white flex items-center">
+            <MessageCircle className="h-5 w-5 mr-2 text-green-500" />
+            Testimonials ({testimonials.length})
+          </h3>
+          <button
+            onClick={() => openEditModal('testimonial', null)}
+            className="flex items-center text-green-400 hover:text-green-300 text-sm"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Testimonial
+          </button>
+        </div>
+        {testimonials.length > 0 ? (
           <div className="space-y-4">
             {testimonials.map((testimonial) => (
               <div key={testimonial._id} className="bg-[#0f0f1a] p-4 rounded-lg relative">
@@ -859,8 +1280,12 @@ const ViewClientDetails = () => {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="bg-[#0f0f1a] p-4 rounded-lg text-gray-400">
+            No testimonials added yet
+          </div>
+        )}
+      </div>
       
       {/* Edit Modal */}
       <EditModal

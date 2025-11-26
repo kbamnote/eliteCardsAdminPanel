@@ -97,7 +97,7 @@ const MailTracking = () => {
 
   if (error) {
     return (
-      <div className="bg-[#1a1a2e] mt-20 rounded-xl shadow-lg p-6">
+      <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-6">
         <div className="text-center">
           <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <XCircle className="text-white w-8 h-8" />

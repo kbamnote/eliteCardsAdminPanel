@@ -155,7 +155,7 @@ const AllClients = () => {
   }
 
   return (
-    <div className="bg-[#1a1a2e] mt-20 rounded-xl shadow-lg p-6">
+    <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-6 mt-20">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div className="flex items-center mb-4 md:mb-0">
           <Users className="h-6 w-6 text-green-500 mr-2" />
@@ -166,7 +166,7 @@ const AllClients = () => {
           {/* Mail All Button */}
           <button
             onClick={() => openMailModal()}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             <Mail className="h-4 w-4" />
             <span>Mail All</span>

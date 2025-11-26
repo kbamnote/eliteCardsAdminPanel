@@ -192,10 +192,10 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
   if (!showModal) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
       <div className="bg-[#1a1a2e] rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-700 bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-gray-700 bg-gradient-to-r from-green-600 to-indigo-600 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <FaEnvelope className="w-6 h-6 text-white" />
             <h3 className="text-xl font-bold text-white">
@@ -211,7 +211,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
             </svg>
           </button>
         </div>
-        
+        k
         <div className="overflow-y-auto max-h-[calc(90vh-180px)]">
           <div className="p-6">
             {/* Success/Error Messages */}
@@ -245,7 +245,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
                           value={mailData.subject}
                           onChange={handleInputChange}
                           placeholder="Enter email subject"
-                          className="w-full px-3 py-2 bg-[#1a1a2e] border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white"
+                          className="w-full px-3 py-2 bg-[#1a1a2e] border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-white"
                           required
                         />
                       </div>
@@ -260,7 +260,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
                           onChange={handleInputChange}
                           placeholder="Enter your message here..."
                           rows="4"
-                          className="w-full px-3 py-2 bg-[#1a1a2e] border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-white"
+                          className="w-full px-3 py-2 bg-[#1a1a2e] border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none text-white"
                           required
                         />
                       </div>
@@ -316,7 +316,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
                         className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
                           sending || selectedClients.length === 0
                             ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-md'
+                            : 'bg-gradient-to-r from-green-600 to-indigo-600 text-white hover:from-green-700 hover:to-indigo-700 shadow-md'
                         }`}
                       >
                         {sending ? (
@@ -357,7 +357,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
                           placeholder="Search clients..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-10 pr-4 py-2 bg-[#1a1a2e] border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white"
+                          className="pl-10 pr-4 py-2 bg-[#1a1a2e] border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-white"
                         />
                       </div>
                     </div>
@@ -367,7 +367,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
                   <div className="px-4 py-3 bg-[#1a1a2e] border-b border-gray-700">
                     <button
                       onClick={toggleSelectAll}
-                      className="flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300"
+                      className="flex items-center gap-2 text-sm font-medium text-green-400 hover:text-green-300"
                     >
                       {selectAll ? (
                         <FaCheckSquare className="w-4 h-4" />
@@ -382,7 +382,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
                   <div className="max-h-[300px] overflow-y-auto">
                     {loading ? (
                       <div className="text-center py-8">
-                        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                         <p className="text-gray-400">Loading clients...</p>
                       </div>
                     ) : filteredClients.length === 0 ? (
@@ -406,7 +406,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
                                 <div className="flex items-center gap-3">
                                   <button
                                     onClick={() => toggleClientSelection(client)}
-                                    className="text-blue-400 hover:text-blue-300"
+                                    className="text-green-400 hover:text-green-300"
                                   >
                                     {selectedClients.includes(clientId) ? (
                                       <FaCheckSquare className="w-5 h-5" />
@@ -416,7 +416,7 @@ const MailModal = ({ showModal, setShowModal, clientId = null }) => {
                                   </button>
                                   
                                   <div className="flex-shrink-0">
-                                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-8 h-8 rounded-full flex items-center justify-center">
+                                    <div className="bg-gradient-to-br from-green-500 to-indigo-600 w-8 h-8 rounded-full flex items-center justify-center">
                                       <span className="text-white font-bold text-xs">
                                         {getClientName(client).charAt(0).toUpperCase()}
                                       </span>

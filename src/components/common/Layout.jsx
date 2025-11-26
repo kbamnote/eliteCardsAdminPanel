@@ -8,9 +8,9 @@ const Layout = ({ children }) => {
   return (
     <div className="flex min-h-screen bg-[#0f0f1a]">
       <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col md:ml-64">
         <Header isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
-        <main className=" p-6 w-full">
+        <main className="flex-1 p-6 ">
           {children}
         </main>
       </div>

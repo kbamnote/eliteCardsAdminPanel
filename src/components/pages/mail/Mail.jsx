@@ -199,7 +199,7 @@ const MailPage = () => {
   }
 
   return (
-    <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-6 w-full">
+    <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-6 w-full mt-18">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div className="flex items-center mb-4 md:mb-0">
           <MailIcon className="h-6 w-6 text-green-500 mr-2" />

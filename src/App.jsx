@@ -7,6 +7,7 @@ import AllClients from './components/pages/clients/AllClients';
 import ViewClientDetails from './components/pages/clients/ViewClientDetails';
 import MailPage from './components/pages/mail/Mail';
 import MailTracking from './components/pages/mail/MailTracking';
+import Inquiries from './components/pages/inquiries/Inquiries';
 import Layout from './components/common/Layout';
 import './App.css';
 import Cookies from 'js-cookie';
@@ -127,6 +128,17 @@ function App() {
               <ProtectedRoute allowedRoles={['admin']}>
                 <Layout>
                   <MailTracking />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/inquiries" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <Inquiries />
                 </Layout>
               </ProtectedRoute>
             } 

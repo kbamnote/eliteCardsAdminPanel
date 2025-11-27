@@ -50,6 +50,7 @@ export const signup = (post) => Apiauth.post("/auth/signup", post);
 // ============== All Clients ==============
 export const allClients = () => Api.get("/profile/");
 export const getDashboardStats = () => Api.get("/profile/dashboard-stats");
+export const getUserRegistrationStats = () => Api.get("/profile/user-stats");
 
 // ============== Client Profile ==============
 export const getClientProfile = (id) => Api.get(`/profile/${id}`);
@@ -101,5 +102,11 @@ export const sendGroupMail = (formData) =>
   });
 
 export const getMailTrackingData = () => Api.get("/mail/");
+
+// ============== Inquiries ==============
+export const submitInquiry = (data) => Api.post("/inquiries/", data);
+export const getAllInquiries = () => Api.get("/inquiries/");
+export const getInquiryById = (id) => Api.get(`/inquiries/${id}`);
+export const deleteInquiry = (id) => Api.delete(`/inquiries/${id}`);
 
 export default Api;

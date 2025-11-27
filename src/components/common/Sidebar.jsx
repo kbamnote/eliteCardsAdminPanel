@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, UserPlus, Mail, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Mail, MessageCircle, LogOut } from 'lucide-react';
 import logo from '../../assets/br-logo.png';
 import Cookies from 'js-cookie';
 
@@ -13,7 +13,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     { name: 'All Clients', href: '/all-clients', icon: Users },
     { name: 'Register Client', href: '/register', icon: UserPlus },
     { name: 'Mail', href: '/mail', icon: Mail },
-    { name: 'Mail Tracking', href: '/mail-tracking', icon: Mail }
+    { name: 'Mail Tracking', href: '/mail-tracking', icon: Mail },
+    { name: 'Inquiries', href: '/inquiries', icon: MessageCircle }
   ];
 
   const isActive = (path) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, UserPlus, Mail, MessageCircle, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Mail, MessageCircle, GraduationCap, LogOut } from 'lucide-react';
 import logo from '../../assets/br-logo.png';
 import Cookies from 'js-cookie';
 
@@ -11,6 +11,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'All Clients', href: '/all-clients', icon: Users },
+    { name: 'All Students', href: '/all-students', icon: GraduationCap },
     { name: 'Register Client', href: '/register', icon: UserPlus },
     { name: 'Mail', href: '/mail', icon: Mail },
     { name: 'Mail Tracking', href: '/mail-tracking', icon: Mail },

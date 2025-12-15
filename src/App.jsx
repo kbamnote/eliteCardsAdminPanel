@@ -4,7 +4,9 @@ import Login from './components/pages/auth/Login';
 import Dashboard from './components/pages/dashboard/Dashboard';
 import Register from './components/pages/register/Register';
 import AllClients from './components/pages/clients/AllClients';
+import AllStudents from './components/pages/students/AllStudents';
 import ViewClientDetails from './components/pages/clients/ViewClientDetails';
+import ViewStudentDetails from './components/pages/students/ViewStudentDetails';
 import MailPage from './components/pages/mail/Mail';
 import MailTracking from './components/pages/mail/MailTracking';
 import Inquiries from './components/pages/inquiries/Inquiries';
@@ -90,11 +92,33 @@ function App() {
           />
           
           <Route 
+            path="/all-students" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <AllStudents />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
             path="/client/:id" 
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <Layout>
                   <ViewClientDetails />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/student/:id" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <ViewStudentDetails />
                 </Layout>
               </ProtectedRoute>
             } 

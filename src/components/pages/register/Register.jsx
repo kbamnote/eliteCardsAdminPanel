@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, User } from 'lucide-react';
 import { signup } from '../../../utils/Api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'client' // Default to client
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -47,11 +48,19 @@ const Register = () => {
       return;
     }
     
+    // Check if role is provided
+    if (!formData.role) {
+      setError('Role is required');
+      setLoading(false);
+      return;
+    }
+    
     try {
-      // Call the actual signup API
+      // Call the actual signup API with role
       const response = await signup({
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        role: formData.role
       });
       
       if (response.data.success) {
@@ -88,7 +97,7 @@ const Register = () => {
           <div className="bg-[#1a1a2e] py-8 px-6 shadow rounded-lg">
             <div className="text-green-500 text-5xl mb-4">✓</div>
             <h2 className="text-2xl font-bold text-white mb-2">Registration Successful!</h2>
-            <p className="text-gray-400 mb-6">The new client has been registered successfully.</p>
+            <p className="text-gray-400 mb-6">The new {formData.role} has been registered successfully.</p>
             <p className="text-gray-400">Redirecting to clients list...</p>
           </div>
         </div>
@@ -174,8 +183,29 @@ const Register = () => {
               </div>
             </div>
 
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-300">
+                Role
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-gray-500" />
+                </div>
+                <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="bg-[#0f0f1a] text-white block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="client">Client</option>
+                  <option value="student">Student</option>
+                </select>
+              </div>
+            </div>
+
             <div className="text-sm text-gray-400">
-              <p>Note: After registration, the client can update their profile with additional information like name and phone number.</p>
+              <p>Note: After registration, the {formData.role} can update their profile with additional information.</p>
             </div>
 
             <div>
@@ -184,7 +214,7 @@ const Register = () => {
                 disabled={loading}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
               >
-                {loading ? 'Registering...' : 'Register Client'}
+                {loading ? 'Registering...' : `Register ${formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}`}
               </button>
             </div>
           </form>

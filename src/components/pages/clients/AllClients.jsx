@@ -52,7 +52,8 @@ const AllClients = () => {
   const filteredClients = clients.filter(client =>
     client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client._id?.toLowerCase().includes(searchTerm.toLowerCase())
+    client._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.userId?._id?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleViewDetails = (clientId) => {
@@ -217,6 +218,7 @@ const AllClients = () => {
             {filteredClients.length > 0 ? (
               filteredClients.map((client) => {
                 const clientId = client._id || client.userId || client.id;
+                const userId = client.userId?._id || clientId;
                 return (
                   <tr key={clientId} className="hover:bg-[#0f0f1a]">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -232,7 +234,7 @@ const AllClients = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300 font-mono">{clientId || 'N/A'}</div>
+                      <div className="text-sm text-gray-300 font-mono">{userId || 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-300">{client.email || client.userId?.email || 'No email'}</div>

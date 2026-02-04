@@ -28,6 +28,7 @@ const AllStudents = () => {
         const response = await allStudents();
         if (response.data.success) {
           setStudents(response.data.data);
+          console.log('Students fetched successfully:', response.data.data);
         } else {
           setError('Failed to fetch students');
         }
@@ -45,7 +46,8 @@ const AllStudents = () => {
   const filteredStudents = students.filter(student =>
     student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student._id?.toLowerCase().includes(searchTerm.toLowerCase())
+    student._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.userId?._id?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleViewDetails = (studentId) => {
@@ -178,6 +180,7 @@ const AllStudents = () => {
             {filteredStudents.length > 0 ? (
               filteredStudents.map((student) => {
                 const studentId = student._id || student.userId || student.id;
+                const userId = student.userId?._id || studentId;
                 return (
                   <tr key={studentId} className="hover:bg-[#0f0f1a]">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -193,7 +196,7 @@ const AllStudents = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300 font-mono">{studentId || 'N/A'}</div>
+                      <div className="text-sm text-gray-300 font-mono">{userId || 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-300">{student.email || student.userId?.email || 'No email'}</div>
